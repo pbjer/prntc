@@ -3,7 +3,8 @@ import Base from "../layouts/Base.astro";
 ---
 
 <Base>
-  <h1>prentice bjerkeseth</h1>
+  <h1>Prentice Bjerkeseth</h1>
+  <p><a href="https://github.com/pbjer">github</a> · <a href="https://www.linkedin.com/in/prentice-bjerkeseth-abb77399/">linkedin</a></p>
 </Base>
 
 <style is:global>
@@ -12,5 +13,11 @@ import Base from "../layouts/Base.astro";
     font-size: 1.75rem;
     font-weight: 500;
     padding-top: 2rem;
+  }
+
+  p a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 </style>
