@@ -1,0 +1,82 @@
+---
+import Base from "../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("writing")).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+---
+
+<Base title="writing">
+  <h1>writing</h1>
+  {
+    posts.length === 0 ? (
+      <p class="empty">Nothing here yet.</p>
+    ) : (
+      <ul class="post-list">
+        {posts.map((post) => (
+          <li>
+            <a href={`/writing/${post.id}`}>
+              <span class="post-title">{post.data.title}</span>
+              <time datetime={post.data.date.toISOString()}>
+                {post.data.date.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </time>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Base>
+
+<style>
+  h1 {
+    font-family: var(--serif);
+    font-size: 1.75rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+  }
+
+  .empty {
+    color: var(--text-muted);
+    font-family: var(--serif);
+  }
+
+  .post-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .post-list a {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    text-decoration: none;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .post-list a:hover .post-title {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .post-title {
+    font-size: 1rem;
+  }
+
+  time {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+</style>
