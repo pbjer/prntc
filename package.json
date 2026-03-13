@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "write": "EDITOR=true astro dev",
     "build": "astro build",
     "preview": "astro preview"
   },

@@ -12,12 +12,16 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+const isEditor = process.env.EDITOR === "true";
 ---
 
 <Base title={post.data.title}>
-  <article class="prose">
+  <article class="prose" data-slug={post.id}>
     <header>
-      <h1>{post.data.title}</h1>
+      <div class="title-row">
+        <a href="/" class="back">&larr;</a>
+        <h1 id="post-title">{post.data.title}</h1>
+      </div>
       <time datetime={post.data.date.toISOString()}>
         {
           post.data.date.toLocaleDateString("en-US", {
@@ -27,18 +31,158 @@ const { Content } = await render(post);
           })
         }
       </time>
+      {isEditor && <button id="edit-btn">Edit</button>}
+      {isEditor && <button id="delete-btn">Delete</button>}
     </header>
-    <Content />
+    <div id="post-content">
+      <Content />
+    </div>
+    {isEditor && <div id="post-editor"></div>}
   </article>
+
+  {isEditor && (
+    <script>
+      import { createEditor } from "editor";
+      import "editor/checkbox.css";
+      import "editor/folding.css";
+
+      const slug = document.querySelector("article[data-slug]")!.getAttribute("data-slug")!;
+      const btn = document.getElementById("edit-btn")!;
+      const content = document.getElementById("post-content")!;
+      const editorEl = document.getElementById("post-editor")!;
+      const titleEl = document.getElementById("post-title")!;
+
+      let editor: Awaited<ReturnType<typeof createEditor>> | null = null;
+
+      document.getElementById("delete-btn")!.addEventListener("click", async () => {
+        if (!confirm("Delete this post?")) return;
+        await fetch(`/api/posts/${slug}`, { method: "DELETE" });
+        window.location.href = "/";
+      });
+
+      if (import.meta.hot) {
+        import.meta.hot.on("vite:beforeFullReload", (payload: any) => {
+          if (editor) {
+            payload.path = "__blocked__";
+            return false;
+          }
+        });
+      }
+
+      async function save() {
+        if (!editor) return;
+        const title = titleEl.textContent!.trim();
+        editor.frontmatter = editor.frontmatter!.replace(/^title:.*$/m, `title: "${title.replace(/"/g, '\\"')}"`);
+        await fetch(`/api/posts/${slug}`, {
+          method: "PUT",
+          body: editor.getMarkdown(),
+        });
+      }
+
+      btn.addEventListener("click", async () => {
+        if (editor) {
+          await save();
+          editor.destroy();
+          editor = null;
+          editorEl.innerHTML = "";
+          content.style.display = "";
+          btn.textContent = "Edit";
+          titleEl.contentEditable = "false";
+          location.reload();
+          return;
+        }
+
+        const res = await fetch(`/api/posts/${slug}`);
+        const markdown = await res.text();
+
+        content.style.display = "none";
+        btn.textContent = "Done";
+        titleEl.contentEditable = "true";
+
+        editor = await createEditor(editorEl, {
+          markdown,
+          storage: false,
+          extraKeymaps: {
+            "Mod-s": () => {
+              save();
+              return true;
+            },
+          },
+        });
+
+        editor.view.focus();
+      });
+    </script>
+  )}
 </Base>
 
 <style>
+  .title-row {
+    position: relative;
+  }
+
+  .back {
+    position: absolute;
+    right: 100%;
+    margin-right: 0.5rem;
+    top: 0;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .back:hover {
+    color: var(--text);
+  }
+
   header {
-    margin-bottom: 2rem;
+    margin-bottom: 3rem;
   }
 
   time {
     font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  #edit-btn {
+    display: inline-block;
+    margin-left: 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  #edit-btn:hover,
+  #delete-btn:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  #delete-btn {
+    display: inline-block;
+    margin-left: 0.25rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  #post-editor :global(.ProseMirror) {
+    outline: none;
+    white-space: pre-wrap;
+  }
+
+  #post-editor :global(.ProseMirror) :global(li)::marker {
     color: var(--text-muted);
   }
 </style>
