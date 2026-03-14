@@ -1,0 +1,14 @@
+---
+title: "Ouijit"
+date: 2026-03-13
+---
+
+I started building [Ouijit](https://ouijit.com/) in a fit of hype right after reading Steve Yegge's [*Gas Town*](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) in January. V1 of Ouijit was born in a couple hours, and it was actually all about sharing and running software as opposed to making it. I've since horseshoed back to thinking the *sharing and running* part is more interesting than the building part… but the result of this detour is a fun way to manage a bunch of terminals (mainly agent terminals, but it’s no requirement), and therefore the production of software these days.
+
+Projects in Ouijit get their own kanban board of tasks, and those tasks can have any number of terminals connected to them. No innovative UX here, just an ergonomic way to manage the macro of agent work (and combat the disorganization I often find myself in). What’s more interesting to me is preserving the general terminal experience, and having layout options that aren’t “the hackerman tmux grid”, so here comes some light skeuomorphism with a card stack design:
+
+![Card stack style terminal UX](/images/stack.png)
+
+The cards are labeled by their associated task, support tags, and give you a quick heads up if Claude Code is busy (pulses purple), or if the terminal is ready for meat tokens (green). You can quickly swap the active terminal and keep your agents unblocked or review work using the built-in diff reviewer, and there are a number of other features that have made it a capable daily driver for me. Micro VM sandboxing, worktree isolation, task lifecycle hooks - but my favorite part is just interacting with a more casual-feeling interface than the typical power user IDE.
+
+There's more to say but I don't feel like writing anymore right now. Check out [ouijit.com](https://ouijit.com) or the [repo](https://github.com/ouijit/ouijit).
