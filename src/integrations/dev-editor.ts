@@ -1,5 +1,5 @@
 import type { AstroIntegration } from "astro";
-import { readdir, readFile, writeFile, unlink } from "node:fs/promises";
+import { readdir, readFile, writeFile, unlink, access } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -23,7 +23,7 @@ export default function devEditor(): AstroIntegration {
 
       "astro:server:setup": ({ server }) => {
         // Use a path prefix so Connect only invokes this for /api/ requests
-        server.middlewares.use("/api/posts", (req, res, next) => {
+        server.middlewares.use("/api/posts", async (req, res, next) => {
           const method = req.method!;
           // req.url is relative to the mount path, e.g. "/" or "/slug-name"
           const path = req.url!.split("?")[0];
@@ -33,9 +33,9 @@ export default function devEditor(): AstroIntegration {
             readdir(contentDir).then(async (files) => {
               const posts = [];
               for (const file of files) {
-                if (!file.endsWith(".md")) continue;
+                if (!file.endsWith(".md") && !file.endsWith(".mdx")) continue;
                 const content = await readFile(join(contentDir, file), "utf-8");
-                const slug = file.replace(/\.md$/, "");
+                const slug = file.replace(/\.mdx?$/, "");
                 const match = content.match(/^---\n([\s\S]*?)\n---/);
                 const fm = match ? match[1] : "";
                 const title = fm.match(/title:\s*(.*)/)?.[1] || slug;
@@ -72,7 +72,9 @@ export default function devEditor(): AstroIntegration {
           // /api/posts/:slug
           const slug = path.slice(1); // remove leading "/"
           if (!slug) { next(); return; }
-          const filePath = join(contentDir, `${slug}.md`);
+          const mdPath = join(contentDir, `${slug}.md`);
+          const mdxPath = join(contentDir, `${slug}.mdx`);
+          const filePath = await access(mdxPath).then(() => mdxPath, () => mdPath);
 
           if (method === "GET") {
             readFile(filePath, "utf-8").then((content) => {
@@ -89,7 +91,10 @@ export default function devEditor(): AstroIntegration {
             collectBody(req).then(async (body) => {
               server.watcher.unwatch(filePath);
               await writeFile(filePath, body);
-              setTimeout(() => server.watcher.add(filePath), 500);
+              setTimeout(() => {
+                server.watcher.add(filePath);
+                server.watcher.emit("change", filePath);
+              }, 500);
               res.end("ok");
             }).catch((e) => {
               res.statusCode = 500;
