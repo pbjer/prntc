@@ -1,0 +1,137 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  title?: string;
+}
+
+const { src, alt, title } = Astro.props;
+const label = title || alt;
+---
+
+<figure class="image-box">
+  <div class="image-box-frame">
+    <img src={src} alt={alt || ""} loading="lazy" />
+    <button class="image-box-expand" aria-label="View full size">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M6 1H1v5M15 10v5h-5M1 1l5.5 5.5M15 15l-5.5-5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+  {label && <figcaption>{label}</figcaption>}
+</figure>
+
+<style>
+  .image-box {
+    width: min(100vw - 2rem, 860px);
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 1.25rem;
+  }
+
+  .image-box-frame {
+    position: relative;
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  .image-box-frame img {
+    display: block;
+    width: 100%;
+    border-radius: 6px;
+  }
+
+  .image-box-expand {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.35rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+    line-height: 0;
+  }
+
+  .image-box-frame:hover .image-box-expand {
+    opacity: 1;
+  }
+
+  .image-box-expand:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  figcaption {
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    padding-left: 0.25rem;
+  }
+</style>
+
+<script>
+  function initImageBoxes() {
+    document.querySelectorAll<HTMLElement>('.image-box-frame').forEach((frame) => {
+      if (frame.dataset.init) return;
+      frame.dataset.init = '1';
+
+      frame.addEventListener('click', () => {
+        const img = frame.querySelector('img')!;
+        const overlay = document.createElement('div');
+        overlay.className = 'image-box-overlay';
+        overlay.innerHTML = `<img src="${img.src}" alt="${img.alt || ''}" />`;
+        document.body.appendChild(overlay);
+
+        requestAnimationFrame(() => overlay.classList.add('open'));
+
+        const close = () => {
+          overlay.classList.remove('open');
+          overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+        };
+
+        overlay.addEventListener('click', close);
+        document.addEventListener('keydown', function handler(e: KeyboardEvent) {
+          if (e.key === 'Escape') {
+            close();
+            document.removeEventListener('keydown', handler);
+          }
+        });
+      });
+    });
+  }
+
+  initImageBoxes();
+  document.addEventListener('astro:after-swap', initImageBoxes);
+</script>
+
+<style is:global>
+  .image-box-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .image-box-overlay.open {
+    opacity: 1;
+  }
+
+  .image-box-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+</style>

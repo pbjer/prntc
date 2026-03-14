@@ -1,4 +1,5 @@
 import { defineConfig } from "astro/config";
+import mdx from "@astrojs/mdx";
 import devEditor from "./src/integrations/dev-editor.ts";
 
 const isEditor = process.env.EDITOR === "true";
@@ -8,5 +9,5 @@ export default defineConfig({
   image: {
     service: { entrypoint: "astro/assets/services/noop" },
   },
-  integrations: isEditor ? [devEditor()] : [],
+  integrations: [mdx(), ...(isEditor ? [devEditor()] : [])],
 });

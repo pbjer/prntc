@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import ImageBox from "../../components/ImageBox.astro";
 import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
@@ -35,7 +36,7 @@ const isEditor = process.env.EDITOR === "true";
       {isEditor && <button id="delete-btn">Delete</button>}
     </header>
     <div id="post-content">
-      <Content />
+      <Content components={{ img: ImageBox }} />
     </div>
     {isEditor && <div id="post-editor"></div>}
   </article>
@@ -175,6 +176,14 @@ const isEditor = process.env.EDITOR === "true";
     color: var(--text-muted);
     cursor: pointer;
     vertical-align: middle;
+  }
+
+  article {
+    overflow: visible;
+  }
+
+  #post-content {
+    overflow: visible;
   }
 
   #post-editor :global(.ProseMirror) {
