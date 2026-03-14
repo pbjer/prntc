@@ -35,7 +35,7 @@
   margin: 0 0 1.25rem;
   font-family: var(--sans);
   font-size: 1.0625rem;
-  line-height: 1.7;
+  line-height: 1.8;
   font-weight: normal;
   letter-spacing: normal;
 }
@@ -52,7 +52,7 @@
   padding-left: 1.5rem;
   font-family: var(--sans);
   font-size: 1.0625rem;
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 :is(.prose, .ProseMirror) blockquote {
