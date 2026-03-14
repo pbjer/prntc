@@ -41,80 +41,82 @@ const isEditor = process.env.EDITOR === "true";
     {isEditor && <div id="post-editor"></div>}
   </article>
 
-  {isEditor && (
-    <script>
-      import { createEditor } from "editor";
-      import "editor/checkbox.css";
-      import "editor/folding.css";
+  <script>
+    if (document.getElementById("edit-btn")) {
+      Promise.all([
+        import("editor"),
+        import("editor/checkbox.css"),
+        import("editor/folding.css"),
+      ]).then(([{ createEditor }]) => {
+        const slug = document.querySelector("article[data-slug]")!.getAttribute("data-slug")!;
+        const btn = document.getElementById("edit-btn")!;
+        const content = document.getElementById("post-content")!;
+        const editorEl = document.getElementById("post-editor")!;
+        const titleEl = document.getElementById("post-title")!;
 
-      const slug = document.querySelector("article[data-slug]")!.getAttribute("data-slug")!;
-      const btn = document.getElementById("edit-btn")!;
-      const content = document.getElementById("post-content")!;
-      const editorEl = document.getElementById("post-editor")!;
-      const titleEl = document.getElementById("post-title")!;
+        let editor: Awaited<ReturnType<typeof createEditor>> | null = null;
 
-      let editor: Awaited<ReturnType<typeof createEditor>> | null = null;
-
-      document.getElementById("delete-btn")!.addEventListener("click", async () => {
-        if (!confirm("Delete this post?")) return;
-        await fetch(`/api/posts/${slug}`, { method: "DELETE" });
-        window.location.href = "/";
-      });
-
-      if (import.meta.hot) {
-        import.meta.hot.on("vite:beforeFullReload", (payload: any) => {
-          if (editor) {
-            payload.path = "__blocked__";
-            return false;
-          }
+        document.getElementById("delete-btn")!.addEventListener("click", async () => {
+          if (!confirm("Delete this post?")) return;
+          await fetch(`/api/posts/${slug}`, { method: "DELETE" });
+          window.location.href = "/";
         });
-      }
 
-      async function save() {
-        if (!editor) return;
-        const title = titleEl.textContent!.trim();
-        editor.frontmatter = editor.frontmatter!.replace(/^title:.*$/m, `title: "${title.replace(/"/g, '\\"')}"`);
-        await fetch(`/api/posts/${slug}`, {
-          method: "PUT",
-          body: editor.getMarkdown(),
-        });
-      }
-
-      btn.addEventListener("click", async () => {
-        if (editor) {
-          await save();
-          editor.destroy();
-          editor = null;
-          editorEl.innerHTML = "";
-          content.style.display = "";
-          btn.textContent = "Edit";
-          titleEl.contentEditable = "false";
-          location.reload();
-          return;
+        if (import.meta.hot) {
+          import.meta.hot.on("vite:beforeFullReload", (payload: any) => {
+            if (editor) {
+              payload.path = "__blocked__";
+              return false;
+            }
+          });
         }
 
-        const res = await fetch(`/api/posts/${slug}`);
-        const markdown = await res.text();
+        async function save() {
+          if (!editor) return;
+          const title = titleEl.textContent!.trim();
+          editor.frontmatter = editor.frontmatter!.replace(/^title:.*$/m, `title: "${title.replace(/"/g, '\\"')}"`);
+          await fetch(`/api/posts/${slug}`, {
+            method: "PUT",
+            body: editor.getMarkdown(),
+          });
+        }
 
-        content.style.display = "none";
-        btn.textContent = "Done";
-        titleEl.contentEditable = "true";
+        btn.addEventListener("click", async () => {
+          if (editor) {
+            await save();
+            editor.destroy();
+            editor = null;
+            editorEl.innerHTML = "";
+            content.style.display = "";
+            btn.textContent = "Edit";
+            titleEl.contentEditable = "false";
+            location.reload();
+            return;
+          }
 
-        editor = await createEditor(editorEl, {
-          markdown,
-          storage: false,
-          extraKeymaps: {
-            "Mod-s": () => {
-              save();
-              return true;
+          const res = await fetch(`/api/posts/${slug}`);
+          const markdown = await res.text();
+
+          content.style.display = "none";
+          btn.textContent = "Done";
+          titleEl.contentEditable = "true";
+
+          editor = await createEditor(editorEl, {
+            markdown,
+            storage: false,
+            extraKeymaps: {
+              "Mod-s": () => {
+                save();
+                return true;
+              },
             },
-          },
-        });
+          });
 
-        editor.view.focus();
+          editor.view.focus();
+        });
       });
-    </script>
-  )}
+    }
+  </script>
 </Base>
 
 <style>

@@ -10,4 +10,11 @@ export default defineConfig({
     service: { entrypoint: "astro/assets/services/noop" },
   },
   integrations: [mdx(), ...(isEditor ? [devEditor()] : [])],
+  vite: {
+    build: {
+      rollupOptions: {
+        external: isEditor ? [] : ["editor", "editor/checkbox.css", "editor/folding.css"],
+      },
+    },
+  },
 });
