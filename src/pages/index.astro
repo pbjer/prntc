@@ -10,6 +10,9 @@ const isEditor = process.env.EDITOR === "true";
 
 <Base>
   <h1>Prentice Bjerkeseth</h1>
+  <p class="bio">
+    Hi, I'm a constant tinkerer. In the evenings I'm building <a href="https://ouijit.com">Ouijit</a>, during the day I'm founding design engineer at <a href="https://get.convictional.com">Convictional</a>.
+  </p>
   <p class="links"><a href="https://github.com/pbjer">github</a> · <a href="https://www.linkedin.com/in/prentice-bjerkeseth-abb77399/">linkedin</a></p>
 
   {isEditor && <button id="new-post">New Post</button>}
@@ -60,7 +63,19 @@ const isEditor = process.env.EDITOR === "true";
     font-size: 1.125rem;
     font-weight: 500;
     line-height: 1.3;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .bio {
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    margin-bottom: 1rem;
+  }
+
+  .bio a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   .links {
