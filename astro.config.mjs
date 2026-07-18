@@ -6,9 +6,6 @@ const isEditor = process.env.EDITOR === "true";
 
 export default defineConfig({
   site: "https://prntc.com",
-  image: {
-    service: { entrypoint: "astro/assets/services/noop" },
-  },
   integrations: [mdx(), ...(isEditor ? [devEditor()] : [])],
   vite: {
     build: {

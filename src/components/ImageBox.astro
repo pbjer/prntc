@@ -1,17 +1,43 @@
 ---
+import { Image, getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
 interface Props {
-  src: string;
+  src: string | ImageMetadata;
   alt?: string;
   title?: string;
 }
 
 const { src, alt, title } = Astro.props;
 const label = title || alt;
+
+// Images under src/assets arrive as ImageMetadata and get optimized into
+// responsive variants. Anything from public/ or a remote URL is a plain
+// string and passes through untouched.
+// The lightbox opens a larger variant than the one rendered inline, so
+// zooming isn't just an upscale of the display-size image.
+const full =
+  typeof src === "string"
+    ? src
+    : (await getImage({ src, width: Math.min(src.width, 2400), format: "webp" })).src;
 ---
 
 <figure class="image-box">
   <div class="image-box-frame">
-    <img src={src} alt={alt || ""} loading="lazy" />
+    {
+      typeof src === "string" ? (
+        <img src={src} alt={alt || ""} loading="lazy" />
+      ) : (
+        <Image
+          src={src}
+          alt={alt || ""}
+          widths={[440, 880, 1760]}
+          sizes="(max-width: 880px) 100vw, 860px"
+          loading="lazy"
+          data-full={full}
+        />
+      )
+    }
     <button class="image-box-expand" aria-label="View full size">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M6 1H1v5M15 10v5h-5M1 1l5.5 5.5M15 15l-5.5-5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -85,7 +111,7 @@ const label = title || alt;
         const img = frame.querySelector('img')!;
         const overlay = document.createElement('div');
         overlay.className = 'image-box-overlay';
-        overlay.innerHTML = `<img src="${img.src}" alt="${img.alt || ''}" />`;
+        overlay.innerHTML = `<img src="${img.dataset.full || img.src}" alt="${img.alt || ''}" />`;
         document.body.appendChild(overlay);
 
         requestAnimationFrame(() => overlay.classList.add('open'));
