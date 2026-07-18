@@ -13,7 +13,6 @@ const isEditor = process.env.EDITOR === "true";
   <p class="bio">
     Hi, I'm a constant tinkerer. In the evenings I'm building <a href="https://ouijit.com">Ouijit</a>, during the day I'm founding design engineer at <a href="https://get.convictional.com">Convictional</a>.
   </p>
-  <p class="links"><a href="https://github.com/pbjer">github</a> · <a href="https://www.linkedin.com/in/prentice-bjerkeseth-abb77399/">linkedin</a></p>
 
   {isEditor && <button id="new-post">New Post</button>}
 
@@ -34,9 +33,7 @@ const isEditor = process.env.EDITOR === "true";
   )}
 
   {
-    posts.length === 0 ? (
-      <p class="empty">Nothing here yet.</p>
-    ) : (
+    posts.length > 0 && (
       <ul class="post-list">
         {posts.map((post) => (
           <li>
@@ -69,27 +66,13 @@ const isEditor = process.env.EDITOR === "true";
   .bio {
     font-family: var(--serif);
     font-size: 1.0625rem;
-    margin-bottom: 1rem;
+    margin-bottom: 3rem;
   }
 
   .bio a {
     color: var(--link);
     text-decoration: underline;
     text-underline-offset: 2px;
-  }
-
-  .links {
-    margin-bottom: 3rem;
-  }
-
-  .links a {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.875rem;
-  }
-
-  .links a:hover {
-    color: var(--text);
   }
 
   #new-post {
@@ -106,11 +89,6 @@ const isEditor = process.env.EDITOR === "true";
   #new-post:hover {
     color: var(--text);
     border-color: var(--text-muted);
-  }
-
-  .empty {
-    color: var(--text-muted);
-    font-family: var(--serif);
   }
 
   .post-list {
